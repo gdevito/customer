@@ -6,8 +6,8 @@ brew install mongodb
 ### Install pip and python deps
 ```shell
 sudo easy_install pip
-pip install -r requirements.txt
-python setup.py install
+sudo pip install -r requirements.txt
+sudo python setup.py install
 ```
 ### start postgres now and on startup
 ```shell
