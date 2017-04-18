@@ -18,11 +18,12 @@ def test_list_customers(http_client, base_url):
 @pytest.mark.gen_test
 def test_create_customer(http_client, base_url):
 
+    test_num = str(randint(1, 1000))
     headers = {'Content-type': 'application/json',
                'Accept': 'text/plain'}
-    data = {'username' : 'Greg'+str(randint(1, 1000)),
-            'address' : '9 Hanscom',
-            'income' : '1000000'}
+    data = {'username' : 'TestUser'+test_num,
+            'address' : 'Test Address '+test_num,
+            'income' : test_num}
     response = yield http_client.fetch(base_url+'/customer',
                                        method='PUT',
                                        body=json.dumps(data))
