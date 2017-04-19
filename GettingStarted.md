@@ -20,7 +20,7 @@ sudo chown -R `id -un` /data/db
 brew tap homebrew/services
 brew services start mongodb
 ```
-### manually run customer server
+### manually run customer server as same user did installs
 ```shell
 python -m customer.server
 ```
