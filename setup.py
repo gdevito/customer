@@ -5,5 +5,4 @@ setup(name='Customer',
       description='Simple Customer Interface',
       author='Greg DeVito',
       packages=['customer',],
-      long_description=open('README.txt').read(),
      )

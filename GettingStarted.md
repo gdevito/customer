@@ -13,11 +13,18 @@ sudo python setup.py install
 ```shell
 pg_ctl -D /usr/local/var/postgres start && brew services start postgresql
 ```
+### start mongodb, using brew services on mac
+```shell
+mkdir -p /data/db
+sudo chown -R `id -un` /data/db
+brew tap homebrew/services
+brew services start mongodb
+```
 ### manually run customer server
 ```shell
 python -m customer.server
 ```
 ### run tests
 ```shell
-pytest
+pytest customer/test/test_customer.py
 ```
