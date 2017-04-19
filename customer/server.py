@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import json
 import logging
+import threading
 import tornado
 import tornado.web
 import tornado.escape
@@ -27,12 +28,15 @@ class localBackend:
         self.tblname = 'customer'
         try:
             self.dbsess = psycopg2.connect(dbname='postgres',
-                                      user=self.dbuser,
-                                      host=self.dbhost,
-                                      password=self.dbpwd)
+                                           user=self.dbuser,
+                                           host=self.dbhost,
+                                           password=self.dbpwd)
         except psycopg2.Error as e:
             log.error(e)
-        self.mgclient = pymongo.MongoClient('localhost:27017')
+        self.mgclient = pymongo.MongoClient('localhost:27017',
+                                            w=1,
+                                            wtimeout=60000,
+                                            j=True)
 
     @contextmanager
     def cur_hdl(self):
@@ -69,8 +73,9 @@ class localBackend:
                             (unique_id, username, income, address))
             except psycopg2.Error as e:
                 log.error(e)
-        res = self.insert_mg(self.get_by_uid_pg(unique_id))
-        log.info(res)
+        persist = threading.Thread(target=self.insert_mg, kwargs=self.get_by_uid_pg(unique_id))
+        persist.daemon = True
+        persist.start()
         return unique_id
 
     def get_by_uid_pg(self, c_uid=None):
@@ -79,6 +84,7 @@ class localBackend:
             res = {}
             try:
                 cur.execute("SELECT * FROM customers")
+                # WHERE clause ^ FIXME
                 for rec in cur:
                     if c_uid is not None:
                         if rec[0] == c_uid:
@@ -98,13 +104,11 @@ class localBackend:
     def init_mg(self):
         self.mgclient.dbc.add_user(self.dbuser, self.dbuser, roles=[{'role':'readWrite','db':'dbc'}])
 
-    def insert_mg(self, customer=None):
-
-        if customer:
-            customers = self.mgclient.dbc.customers
-            log.info(customers)
-            res = customers.insert(customer)
-            log.info(res)
+    def insert_mg(self, **kwargs):
+        ''' insert customer into mongodb '''
+        customers = self.mgclient.dbc.customers
+        res = customers.insert(kwargs)
+        log.info(res)
 
 class CustomerHandler(tornado.web.RequestHandler):
 
